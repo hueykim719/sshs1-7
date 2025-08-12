@@ -4,6 +4,7 @@ from datetime import datetime, date
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import os
+import re  # ⬅ 추가: 기존 메모의 시간 꼬리표 제거용
 
 load_dotenv()
 
@@ -20,6 +21,9 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ADMIN_CODE = os.environ.get('ADMIN_CODE', '1234')  # set in environment for security
 
 db = SQLAlchemy(app)
+with app.app_context():
+    db.create_all()
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # --- Models ---
 class Task(db.Model):
@@ -107,6 +111,7 @@ def add_task():
     flash('추가되었습니다.', 'success')
     return redirect(url_for('tasks'))
 
+
 @app.route('/tasks/delete/<int:task_id>', methods=['POST'])
 def delete_task(task_id):
     if not is_admin():
@@ -179,8 +184,6 @@ def timetable():
     return render_template('timetable.html', image_path=image_path)
 
 # -------- Misc (기타: 자유메모) --------
-from datetime import datetime
-
 @app.route('/misc', methods=['GET'])
 def misc():
     notes = Note.query.order_by(Note.created_at.desc()).all()
@@ -196,11 +199,8 @@ def add_note():
         flash('내용을 입력해 주세요.', 'error')
         return redirect(url_for('misc'))
 
-    # 작성 시간(월-일 시:분) 추가
-    now_str = datetime.now().strftime("%m-%d %H:%M")
-    content_with_time = f"{content} ({now_str})"
-
-    db.session.add(Note(content=content_with_time))
+    # ✅ 시간대 붙이지 않고 내용만 저장
+    db.session.add(Note(content=content))
     db.session.commit()
     flash('메모가 등록되었습니다.', 'success')
     return redirect(url_for('misc'))
@@ -216,6 +216,7 @@ def delete_note(note_id):
         db.session.commit()
         flash('삭제되었습니다.', 'success')
     return redirect(url_for('misc'))
+
 # -------- Admin --------
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -242,7 +243,22 @@ def init_db():
     db.create_all()
     print('Initialized the database.')
 
+# --- 앱 시작 시: 기존 메모의 "(MM-DD HH:MM)" 꼬리표 제거 (한 번 실행돼도 안전)
+def _strip_old_note_timestamps():
+    pattern = re.compile(r"\s\(\d{2}-\d{2}\s\d{2}:\d{2}\)$")
+    changed = 0
+    notes = Note.query.all()
+    for n in notes:
+        new_content = re.sub(pattern, "", n.content)
+        if new_content != n.content:
+            n.content = new_content
+            changed += 1
+    if changed:
+        db.session.commit()
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        # ✅ 기존 메모 정리(있으면)
+        _strip_old_note_timestamps()
     app.run(host='0.0.0.0', port=5000, debug=True)
