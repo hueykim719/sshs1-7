@@ -17,7 +17,11 @@
     {% for n in notes %}
       <li class="note">
         <div class="note-content">{{ n.content | e | replace('\n','<br>') | safe }}</div>
-        <div class="note-meta">{{ n.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+        
+        {# ✅ 서울 시간(UTC+9)로 변환 #}
+        {% set kst_time = n.created_at + timedelta(hours=9) %}
+        <div class="note-meta">{{ kst_time.strftime('%Y-%m-%d %H:%M') }}</div>
+
         {% if is_admin %}
         <form method="post" action="{{ url_for('delete_note', note_id=n.id) }}">
           <button class="btn tiny danger">삭제</button>
