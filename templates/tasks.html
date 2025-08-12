@@ -10,7 +10,7 @@
       {% for t in assessments %}
         <li class="list-item">
           <span class="title">{{ t.title }}</span>
-          <span class="date">{{ t.due_date.strftime('%Y-%m-%d') }}</span>
+          <span class="date">{{ t.due_str }}</span>
           {% if is_admin %}
           <form method="post" action="{{ url_for('delete_task', task_id=t.id) }}">
             <button class="btn small danger">삭제</button>
@@ -31,7 +31,7 @@
       {% for t in assignments %}
         <li class="list-item">
           <span class="title">{{ t.title }}</span>
-          <span class="date">{{ t.due_date.strftime('%Y-%m-%d') }}</span>
+          <span class="date">{{ t.due_str }}</span>
           {% if is_admin %}
           <form method="post" action="{{ url_for('delete_task', task_id=t.id) }}">
             <button class="btn small danger">삭제</button>

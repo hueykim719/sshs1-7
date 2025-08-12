@@ -86,26 +86,45 @@ def index():
 @app.route('/tasks')
 def tasks():
     today = date.today()
-    assessments = Task.query.filter_by(category='assessment').order_by(Task.due_date.asc()).all()
-    assignments = Task.query.filter_by(category='assignment').order_by(Task.due_date.asc()).all()
-    return render_template('tasks.html', assessments=assessments, assignments=assignments, today=today)
+
+    assessments = Task.query.filter_by(category='assessment') \
+        .order_by(Task.due_date.asc()).all()
+    assignments = Task.query.filter_by(category='assignment') \
+        .order_by(Task.due_date.asc()).all()
+
+    # 화면 표시용 문자열 (None이어도 안전)
+    for t in assessments:
+        t.due_str = t.due_date.strftime('%Y-%m-%d') if t.due_date else ''
+    for t in assignments:
+        t.due_str = t.due_date.strftime('%Y-%m-%d') if t.due_date else ''
+
+    return render_template('tasks.html',
+                           assessments=assessments,
+                           assignments=assignments,
+                           today=today)
 
 @app.route('/tasks/add', methods=['POST'])
 def add_task():
     if not is_admin():
         flash('관리자만 추가할 수 있어요.', 'error')
         return redirect(url_for('tasks'))
+
     title = request.form.get('title', '').strip()
     category = request.form.get('category', 'assignment')
-    due_date_str = request.form.get('due_date', '')
-    if not title or not due_date_str or category not in ('assessment','assignment'):
+    due_date_str = request.form.get('due_date', '')  # 예: 2025-08-15
+
+    if not title or not due_date_str or category not in ('assessment', 'assignment'):
         flash('모든 항목을 정확히 입력해 주세요.', 'error')
         return redirect(url_for('tasks'))
+
     try:
-        due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
-    except ValueError:
+        # 입력값에서 월/일만 사용하고 연도는 2025로 고정
+        y, m, d = due_date_str.split('-')
+        due_date = date(2025, int(m), int(d))
+    except Exception:
         flash('마감일 형식이 올바르지 않습니다 (YYYY-MM-DD).', 'error')
         return redirect(url_for('tasks'))
+
     db.session.add(Task(title=title, due_date=due_date, category=category))
     db.session.commit()
     flash('추가되었습니다.', 'success')
