@@ -49,7 +49,23 @@
   <h2>➕ 추가하기</h2>
   <form class="form row wrap" method="post" action="{{ url_for('add_task') }}">
     <input class="input" type="text" name="title" placeholder="제목" required>
-    <input class="input" type="date" name="due_date" required>
+    <input class="input" type="datetime-local" id="due_date" name="due_date" required>
+
+<script>
+  const dateInput = document.getElementById('due_date');
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const hours = String(today.getHours()).padStart(2, '0');
+  const minutes = String(today.getMinutes()).padStart(2, '0');
+
+  // 기본값을 "2025-월-일T시:분"으로 설정
+  dateInput.value = `2025-${month}-${day}T${hours}:${minutes}`;
+  
+  // 선택 가능한 날짜를 2025년으로 제한
+  dateInput.min = "2025-01-01T00:00";
+  dateInput.max = "2025-12-31T23:59";
+</script>
     <select class="input" name="category">
       <option value="assessment">수행평가</option>
       <option value="assignment" selected>과제</option>

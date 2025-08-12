@@ -14,7 +14,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'classhub.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, '1-7app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ADMIN_CODE = os.environ.get('ADMIN_CODE', '1234')  # set in environment for security
@@ -179,6 +179,8 @@ def timetable():
     return render_template('timetable.html', image_path=image_path)
 
 # -------- Misc (기타: 자유메모) --------
+from datetime import datetime
+
 @app.route('/misc', methods=['GET'])
 def misc():
     notes = Note.query.order_by(Note.created_at.desc()).all()
@@ -193,7 +195,12 @@ def add_note():
     if not content:
         flash('내용을 입력해 주세요.', 'error')
         return redirect(url_for('misc'))
-    db.session.add(Note(content=content))
+
+    # 작성 시간(월-일 시:분) 추가
+    now_str = datetime.now().strftime("%m-%d %H:%M")
+    content_with_time = f"{content} ({now_str})"
+
+    db.session.add(Note(content=content_with_time))
     db.session.commit()
     flash('메모가 등록되었습니다.', 'success')
     return redirect(url_for('misc'))
@@ -209,7 +216,6 @@ def delete_note(note_id):
         db.session.commit()
         flash('삭제되었습니다.', 'success')
     return redirect(url_for('misc'))
-
 # -------- Admin --------
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():

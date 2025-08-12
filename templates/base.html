@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Class Hub</title>
+  <title>1-7app</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
 <body>
   <header class="topbar">
     <div class="container row between center">
-      <a class="brand" href="{{ url_for('index') }}">📚 Class Hub</a>
+      <a class="brand" href="{{ url_for('index') }}">📚 1-7app</a>
       <nav class="row gap">
         {% if is_admin %}
           <form action="{{ url_for('admin_logout') }}" method="post">
