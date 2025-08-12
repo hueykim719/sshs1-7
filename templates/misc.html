@@ -17,10 +17,8 @@
     {% for n in notes %}
       <li class="note">
         <div class="note-content">{{ n.content | e | replace('\n','<br>') | safe }}</div>
-
-        <!-- ✅ 백엔드에서 만든 한국시간 'YYYY-MM-DD' 문자열만 출력 -->
+        <!-- 서울 기준 날짜만 -->
         <div class="note-meta">{{ n.kst_str }}</div>
-
         {% if is_admin %}
         <form method="post" action="{{ url_for('delete_note', note_id=n.id) }}">
           <button class="btn tiny danger">삭제</button>

@@ -49,4 +49,19 @@
 <div class="section">
   <h2>➕ 추가하기</h2>
   <form class="form row wrap" method="post" action="{{ url_for('add_task') }}">
-    <input class="input" type="text" name="
+    <input class="input" type="text" name="title" placeholder="제목" required>
+
+    <!-- 2025년만 선택 가능 -->
+    <input class="input" type="date" name="due_date"
+           min="2025-01-01" max="2025-12-31" value="2025-01-01" required>
+
+    <select class="input" name="category">
+      <option value="assessment">수행평가</option>
+      <option value="assignment" selected>과제</option>
+    </select>
+    <button class="btn primary">추가</button>
+  </form>
+</div>
+{% endif %}
+
+{% endblock %}

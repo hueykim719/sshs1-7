@@ -4,7 +4,7 @@ from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import os
-import re  # ⬅ 추가: 기존 메모의 시간 꼬리표 제거용
+import re
 
 load_dotenv()
 
@@ -18,7 +18,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, '1-7app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-ADMIN_CODE = os.environ.get('ADMIN_CODE', '1234')  # set in environment for security
+ADMIN_CODE = os.environ.get('ADMIN_CODE', '1234')
 
 db = SQLAlchemy(app)
 with app.app_context():
@@ -72,7 +72,6 @@ def inject_globals():
 # --- Routes ---
 @app.route('/')
 def index():
-    # Count upcoming items for quick badges
     today = date.today()
     upcoming_count = Task.query.filter(Task.due_date >= today).count()
     supplies_count = Supply.query.count()
@@ -129,7 +128,6 @@ def add_task():
     db.session.commit()
     flash('추가되었습니다.', 'success')
     return redirect(url_for('tasks'))
-
 
 @app.route('/tasks/delete/<int:task_id>', methods=['POST'])
 def delete_task(task_id):
@@ -221,7 +219,6 @@ def add_note():
         flash('내용을 입력해 주세요.', 'error')
         return redirect(url_for('misc'))
 
-    # ✅ 시간대 붙이지 않고 내용만 저장
     db.session.add(Note(content=content))
     db.session.commit()
     flash('메모가 등록되었습니다.', 'success')
@@ -281,6 +278,5 @@ def _strip_old_note_timestamps():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        # ✅ 기존 메모 정리(있으면)
         _strip_old_note_timestamps()
     app.run(host='0.0.0.0', port=5000, debug=True)
