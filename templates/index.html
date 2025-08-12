@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>0_0</h1>
+<div class="grid">
+  <a class="card" href="{{ url_for('tasks') }}">
+    <div class="card-title">수행평가 / 과제</div>
+    <div class="badge">{{ upcoming_count }}</div>
+  </a>
+  <a class="card" href="{{ url_for('supplies') }}">
+    <div class="card-title">내일의 준비물</div>
+    <div class="badge">{{ supplies_count }}</div>
+  </a>
+  <a class="card" href="{{ url_for('timetable') }}">
+    <div class="card-title">시간표</div>
+  </a>
+  <a class="card" href="{{ url_for('misc') }}">
+    <div class="card-title">기타</div>
+    <div class="badge">{{ notes_count }}</div>
+  </a>
+</div>
+{% endblock %}

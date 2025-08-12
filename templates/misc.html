@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>기타 (자유 메모)</h1>
+<a class="btn" href="{{ url_for('index') }}">← 뒤로</a>
+{% if is_admin %}
+<div class="section">
+  <h2>작성하기</h2>
+  <form class="form" method="post" action="{{ url_for('add_note') }}">
+    <textarea class="input" name="content" rows="4" placeholder="자유롭게 메모를 적어 주세요." required></textarea>
+    <button class="btn primary">등록</button>
+  </form>
+</div>
+{% endif %}
+
+{% if notes %}
+  <ul class="notes">
+    {% for n in notes %}
+      <li class="note">
+        <div class="note-content">{{ n.content | e | replace('\n','<br>') | safe }}</div>
+        <div class="note-meta">{{ n.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+        {% if is_admin %}
+        <form method="post" action="{{ url_for('delete_note', note_id=n.id) }}">
+          <button class="btn tiny danger">삭제</button>
+        </form>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="empty">아직 메모가 없습니다.</div>
+{% endif %}
+{% endblock %}
