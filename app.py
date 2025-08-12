@@ -187,9 +187,9 @@ def timetable():
 @app.route('/misc', methods=['GET'])
 def misc():
     notes = Note.query.order_by(Note.created_at.desc()).all()
-    # 화면에 표시할 한국시간(UTC+9) 값을 미리 계산해서 넣어줌
+    kst_offset = timedelta(hours=9)
     for n in notes:
-        n.kst = n.created_at + timedelta(hours=9)
+        n.kst_str = (n.created_at + kst_offset).strftime('%Y-%m-%d')  # 날짜만
     return render_template('misc.html', notes=notes)
 
 @app.route('/misc/add', methods=['POST'])
