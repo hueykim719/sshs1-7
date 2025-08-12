@@ -20,7 +20,8 @@
         
         {# ✅ 서울 시간(UTC+9)로 변환 #}
         {% set kst_time = n.created_at + timedelta(hours=9) %}
-        <div class="note-meta">{{ kst_time.strftime('%Y-%m-%d %H:%M') }}</div>
+        <div class="note-meta">{{ n.kst.strftime('%Y-%m-%d') }}</div>
+
 
         {% if is_admin %}
         <form method="post" action="{{ url_for('delete_note', note_id=n.id) }}">

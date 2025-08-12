@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import os
@@ -187,6 +187,9 @@ def timetable():
 @app.route('/misc', methods=['GET'])
 def misc():
     notes = Note.query.order_by(Note.created_at.desc()).all()
+    # 화면에 표시할 한국시간(UTC+9) 값을 미리 계산해서 넣어줌
+    for n in notes:
+        n.kst = n.created_at + timedelta(hours=9)
     return render_template('misc.html', notes=notes)
 
 @app.route('/misc/add', methods=['POST'])
