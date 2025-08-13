@@ -16,7 +16,10 @@
   <ul class="notes">
     {% for n in notes %}
       <li class="note">
-        <div class="note-content">{{ n.content | e | replace('\n','<br>') | safe }}</div>
+        <!-- URL 자동 링크 + 줄바꿈 보존 -->
+        <div class="note-content">
+          {{ (n.html if n.html is defined else (n.content | e | replace('\n','<br>'))) | safe }}
+        </div>
         <!-- 서울 기준 날짜만 -->
         <div class="note-meta">{{ n.kst_str }}</div>
         {% if is_admin %}

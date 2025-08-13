@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+from markupsafe import Markup, escape  # ★ 추가
 import os
 import re
 
@@ -69,6 +70,17 @@ def is_admin():
 def inject_globals():
     return dict(is_admin=is_admin())
 
+# ★ URL 자동 링크 + 줄바꿈 보존 함수
+_link_re = re.compile(r'(https?://[^\s<]+)')
+
+def linkify(text: str) -> Markup:
+    if not text:
+        return Markup("")
+    safe = escape(text)  # XSS 방지
+    safe = _link_re.sub(r'<a href="\1" target="_blank" rel="noopener noreferrer">\1</a>', safe)
+    safe = safe.replace('\r\n', '\n').replace('\r', '\n').replace('\n', '<br>')
+    return Markup(safe)
+
 # --- Routes ---
 @app.route('/')
 def index():
@@ -81,49 +93,35 @@ def index():
                            supplies_count=supplies_count,
                            notes_count=notes_count)
 
-# -------- Tasks (수행평가/과제) --------
+# -------- Tasks --------
 @app.route('/tasks')
 def tasks():
     today = date.today()
-
-    assessments = Task.query.filter_by(category='assessment') \
-        .order_by(Task.due_date.asc()).all()
-    assignments = Task.query.filter_by(category='assignment') \
-        .order_by(Task.due_date.asc()).all()
-
-    # 화면 표시용 문자열 (None이어도 안전)
+    assessments = Task.query.filter_by(category='assessment').order_by(Task.due_date.asc()).all()
+    assignments = Task.query.filter_by(category='assignment').order_by(Task.due_date.asc()).all()
     for t in assessments:
         t.due_str = t.due_date.strftime('%Y-%m-%d') if t.due_date else ''
     for t in assignments:
         t.due_str = t.due_date.strftime('%Y-%m-%d') if t.due_date else ''
-
-    return render_template('tasks.html',
-                           assessments=assessments,
-                           assignments=assignments,
-                           today=today)
+    return render_template('tasks.html', assessments=assessments, assignments=assignments, today=today)
 
 @app.route('/tasks/add', methods=['POST'])
 def add_task():
     if not is_admin():
         flash('관리자만 추가할 수 있어요.', 'error')
         return redirect(url_for('tasks'))
-
     title = request.form.get('title', '').strip()
     category = request.form.get('category', 'assignment')
-    due_date_str = request.form.get('due_date', '')  # 예: 2025-08-15
-
+    due_date_str = request.form.get('due_date', '')
     if not title or not due_date_str or category not in ('assessment', 'assignment'):
         flash('모든 항목을 정확히 입력해 주세요.', 'error')
         return redirect(url_for('tasks'))
-
     try:
-        # 입력값에서 월/일만 사용하고 연도는 2025로 고정
         y, m, d = due_date_str.split('-')
         due_date = date(2025, int(m), int(d))
     except Exception:
         flash('마감일 형식이 올바르지 않습니다 (YYYY-MM-DD).', 'error')
         return redirect(url_for('tasks'))
-
     db.session.add(Task(title=title, due_date=due_date, category=category))
     db.session.commit()
     flash('추가되었습니다.', 'success')
@@ -141,7 +139,7 @@ def delete_task(task_id):
         flash('삭제되었습니다.', 'success')
     return redirect(url_for('tasks'))
 
-# -------- Supplies (내일의 준비물) --------
+# -------- Supplies --------
 @app.route('/supplies')
 def supplies():
     items = Supply.query.order_by(Supply.id.asc()).all()
@@ -173,7 +171,7 @@ def delete_supply(item_id):
         flash('삭제되었습니다.', 'success')
     return redirect(url_for('supplies'))
 
-# -------- Timetable (시간표 이미지) --------
+# -------- Timetable --------
 @app.route('/timetable', methods=['GET', 'POST'])
 def timetable():
     if request.method == 'POST':
@@ -200,13 +198,14 @@ def timetable():
             image_path = default_path
     return render_template('timetable.html', image_path=image_path)
 
-# -------- Misc (기타: 자유메모) --------
+# -------- Misc --------
 @app.route('/misc', methods=['GET'])
 def misc():
     notes = Note.query.order_by(Note.created_at.desc()).all()
     kst_offset = timedelta(hours=9)
     for n in notes:
-        n.kst_str = (n.created_at + kst_offset).strftime('%Y-%m-%d')  # 날짜만
+        n.kst_str = (n.created_at + kst_offset).strftime('%Y-%m-%d')
+        n.html = linkify(n.content)  # ★ 링크화
     return render_template('misc.html', notes=notes)
 
 @app.route('/misc/add', methods=['POST'])
@@ -218,7 +217,6 @@ def add_note():
     if not content:
         flash('내용을 입력해 주세요.', 'error')
         return redirect(url_for('misc'))
-
     db.session.add(Note(content=content))
     db.session.commit()
     flash('메모가 등록되었습니다.', 'success')
@@ -262,7 +260,7 @@ def init_db():
     db.create_all()
     print('Initialized the database.')
 
-# --- 앱 시작 시: 기존 메모의 "(MM-DD HH:MM)" 꼬리표 제거 (한 번 실행돼도 안전)
+# --- 앱 시작 시: 기존 메모 꼬리표 제거 ---
 def _strip_old_note_timestamps():
     pattern = re.compile(r"\s\(\d{2}-\d{2}\s\d{2}:\d{2}\)$")
     changed = 0
