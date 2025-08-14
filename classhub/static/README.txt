@@ -1,0 +1,1 @@
+Static assets go here (CSS, JS, icons, manifest.json, service-worker.js, uploads folder).
