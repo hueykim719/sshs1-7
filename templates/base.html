@@ -1,1 +1,52 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}"><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"><script defer src="{{ url_for('static', filename='app.js') }}"></script><title>1-7 ClassHub</title></head><body><div class="container"><header class="grid three"><div><h1>1-7 ClassHub</h1></div><nav><a class="btn" href="{{ url_for('index') }}">홈</a><a class="btn" href="{{ url_for('tasks') }}">과제/수행</a><a class="btn" href="{{ url_for('supplies') }}">내일 준비</a><a class="btn" href="{{ url_for('timetable') }}">시간표</a><a class="btn" href="{{ url_for('misc') }}">기타</a></nav><div style="text-align:right">{% if is_admin %}<form method="post" action="{{ url_for('admin_logout') }}"><button class="btn">관리자 해제</button></form>{% else %}<a class="btn" href="{{ url_for('admin_login') }}">관리자 모드</a>{% endif %}</div></header>{% with messages=get_flashed_messages(with_categories=true) %}{% if messages %}<div class='card'>{% for cat,msg in messages %}<div class='meta'>{{ msg }}</div>{% endfor %}</div>{% endif %}{% endwith %}{% block content %}{% endblock %}<footer class="meta">PWA · ICS 캘린더 · © 1-7</footer></div></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+  <title>1-7 ClassHub</title>
+</head>
+<body>
+  <div class="app-wrap">
+    <header class="topbar">
+      <div class="brand">1-7 ClassHub</div>
+      <nav class="nav">
+        <a class="btn lg" href="{{ url_for('index') }}">홈</a>
+        <a class="btn lg" href="{{ url_for('tasks') }}">과제/수행</a>
+        <a class="btn lg" href="{{ url_for('supplies') }}">준비물</a>
+        <a class="btn lg" href="{{ url_for('timetable') }}">시간표</a>
+        <a class="btn lg" href="{{ url_for('misc') }}">기타</a>
+      </nav>
+      <div class="adm">
+        {% if is_admin %}
+          <form method="post" action="{{ url_for('admin_logout') }}"><button class="btn sm">관리자 해제</button></form>
+        {% else %}
+          <a class="btn sm" href="{{ url_for('admin_login') }}">관리자</a>
+        {% endif %}
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="toasts">
+          {% for cat, msg in messages %}
+            <div class="toast">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bottombar">
+      <a href="/calendar.ics" class="link">Google Calendar 구독 (ICS)</a>
+      <div class="muted">© 1-7</div>
+    </footer>
+  </div>
+</body>
+</html>

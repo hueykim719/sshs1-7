@@ -30,7 +30,7 @@ class Task(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed = db.Column(db.Boolean, default=False)
     color = db.Column(db.String(20), default='#60a5fa')
-    attachment_path = db.Column(db.String(300))  # static/uploads/tasks/.. (render 시 url_for('static', filename=...))
+    attachment_path = db.Column(db.String(300))  # static/uploads/tasks/...
 
 class Supply(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -46,7 +46,7 @@ class Note(db.Model):
     tags = db.Column(db.String(200), default='')
     pinned = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    attachment_path = db.Column(db.String(300))  # static/uploads/misc/..
+    attachment_path = db.Column(db.String(300))  # static/uploads/misc/...
 
 # -------------------- 유틸 --------------------
 def allowed_file(filename):
@@ -137,20 +137,20 @@ def admin_logout():
     flash('관리자 모드 OFF', 'success')
     return redirect(url_for('index'))
 
-# --- 과제/수행 (정렬/필터/완료/첨부) ---
+# --- 과제/수행 (정렬/필터/완료/첨부, 연도 2025 고정) ---
 @app.route('/tasks')
 def tasks():
     sort = request.args.get('sort', 'due_asc')   # due_asc|due_desc|created_desc|created_asc|category
     when = request.args.get('when', '')          # today|tomorrow|upcoming|''
 
     qs = Task.query
-    today = date.today()
+    today_d = date.today()
     if when == 'today':
-        qs = qs.filter(Task.due_date == today)
+        qs = qs.filter(Task.due_date == today_d)
     elif when == 'tomorrow':
-        qs = qs.filter(Task.due_date == today + timedelta(days=1))
+        qs = qs.filter(Task.due_date == today_d + timedelta(days=1))
     elif when == 'upcoming':
-        qs = qs.filter(Task.due_date >= today)
+        qs = qs.filter(Task.due_date >= today_d)
 
     if sort == 'due_desc':
         qs = qs.order_by(Task.due_date.desc())
@@ -163,7 +163,9 @@ def tasks():
     else:
         qs = qs.order_by(Task.due_date.asc())
 
-    return render_template('tasks.html', tasks=qs.all(), sort=sort, when=when)
+    # 기본값으로 2025-<오늘월>-<오늘일>을 템플릿에 전달
+    default_2025 = f"2025-{today_d.month:02d}-{today_d.day:02d}"
+    return render_template('tasks.html', tasks=qs.all(), sort=sort, when=when, default_2025=default_2025)
 
 @app.route('/tasks/add', methods=['POST'])
 def add_task():
@@ -172,7 +174,7 @@ def add_task():
         return redirect(url_for('tasks'))
 
     title = request.form.get('title','').strip()
-    due_str = request.form.get('due_date','')
+    due_str = request.form.get('due_date','')  # 사용자가 뭘 보내든 서버에서 2025로 강제
     category = request.form.get('category','assignment')
     color = request.form.get('color','#60a5fa')
     f = request.files.get('attachment')
@@ -181,8 +183,11 @@ def add_task():
         flash('입력 오류', 'error')
         return redirect(url_for('tasks'))
 
+    # ---- 연도 2025 강제 적용 ----
+    # 사용자가 2023/2024/2026을 보내도 2025로 바꿔서 저장 (월/일만 유지)
     try:
-        due_date = datetime.strptime(due_str, '%Y-%m-%d').date()
+        any_date = datetime.strptime(due_str, '%Y-%m-%d').date()
+        due_date = date(2025, any_date.month, any_date.day)
     except Exception:
         flash('마감일 형식 오류 YYYY-MM-DD', 'error')
         return redirect(url_for('tasks'))
@@ -200,7 +205,7 @@ def add_task():
         color=color, attachment_path=attachment_path
     ))
     db.session.commit()
-    flash('추가됨', 'success')
+    flash('추가됨 (연도 2025 고정)', 'success')
     return redirect(url_for('tasks'))
 
 @app.route('/tasks/complete/<int:task_id>', methods=['POST'])

@@ -1,1 +1,44 @@
-{% extends "base.html" %}{% block content %}<div class="grid">{% for n in notes %}<div class="card"><div class="meta">{{ n.kst_str }} {% if n.tags %}· {{ n.tags }}{% endif %}</div><div style="margin-top:8px">{{ n.html }}</div>{% if n.attachment_path %}<div class="meta" style="margin-top:8px">첨부: <a href="{{ url_for('static', filename=n.attachment_path) }}" target="_blank">다운로드</a></div>{% endif %}{% if is_admin %}<div style="margin-top:8px"><form method="post" action="{{ url_for('delete_note', note_id=n.id) }}" style="display:inline"><button class="btn danger">삭제</button></form><form method="post" action="{{ url_for('toggle_pin', note_id=n.id) }}" style="display:inline"><button class="btn">{{ '고정 해제' if n.pinned else '고정' }}</button></form></div>{% endif %}</div>{% else %}<div class="card">메모가 없습니다.</div>{% endfor %}</div>{% if is_admin %}<div class="card"><h3>메모 작성</h3><form method="post" action="{{ url_for('add_note') }}" enctype="multipart/form-data" class="grid two"><input name="tags" placeholder="태그(쉼표로 구분)"><textarea name="content" rows="4" placeholder="내용"></textarea><input type="file" name="attachment"><button class="btn primary">등록</button></form></div>{% endif %}{% endblock %}
+{% extends "base.html" %}
+{% block content %}
+<section class="stack g12">
+  {% for n in notes %}
+  <div class="card">
+    <div class="row between">
+      <div class="meta">{{ n.kst_str }}</div>
+      <div class="row g8">
+        {% if n.tags %}
+          <div class="tag">#{{ n.tags }}</div>
+        {% endif %}
+        {% if n.pinned %}<div class="tag gold">★ 고정</div>{% endif %}
+      </div>
+    </div>
+    <div class="note-content">{{ n.html }}</div>
+    {% if n.attachment_path %}
+      <div class="meta" style="margin-top:8px">첨부:
+        <a href="{{ url_for('static', filename=n.attachment_path) }}" target="_blank">다운로드</a>
+      </div>
+    {% endif %}
+    {% if is_admin %}
+    <div class="row g8" style="margin-top:10px">
+      <form method="post" action="{{ url_for('toggle_pin', note_id=n.id) }}"><button class="btn sm">고정/해제</button></form>
+      <form method="post" action="{{ url_for('delete_note', note_id=n.id) }}"><button class="btn sm danger">삭제</button></form>
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+    <div class="card">메모가 없습니다.</div>
+  {% endfor %}
+</section>
+
+{% if is_admin %}
+<div class="fab-card card">
+  <h3>메모 작성</h3>
+  <form class="grid2 g12" method="post" action="{{ url_for('add_note') }}" enctype="multipart/form-data">
+    <input class="inp xl" name="tags" placeholder="태그(쉼표로 구분)">
+    <textarea class="inp xl" name="content" rows="4" placeholder="내용을 입력하세요"></textarea>
+    <input class="inp xl" type="file" name="attachment" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip">
+    <button class="btn xl primary">등록</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}
