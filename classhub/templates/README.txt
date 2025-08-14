@@ -1,1 +1,0 @@
-HTML template files go here (base.html, tasks.html, etc.).

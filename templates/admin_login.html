@@ -1,8 +1,1 @@
-{% extends "base.html" %}
-{% block content %}
-<h1>관리자 모드</h1>
-<form class="form" method="post">
-  <input class="input" type="password" name="code" placeholder="관리자 코드" required>
-  <button class="btn primary">로그인</button>
-</form>
-{% endblock %}
+{% extends "base.html" %}{% block content %}<div class="card"><h3>관리자 모드</h3><form method="post"><input name="code" placeholder="관리자 코드" required><button class="btn">전환</button></form><form method="post" action="{{ url_for('admin_logout') }}" style="margin-top:8px"><button class="btn">관리자 해제</button></form></div>{% endblock %}

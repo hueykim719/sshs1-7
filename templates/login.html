@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card"><h2>로그인</h2></div>
+<div class="card">
+<form method="post">
+  <input name="username" placeholder="아이디" required>
+  <input name="password" type="password" placeholder="비밀번호" required>
+  <input name="admin_code" placeholder="(선택) 관리자 코드 입력 시 관리자 승격">
+  <button class="btn primary" type="submit">로그인</button>
+</form>
+<a class="btn" href="{{ url_for('admin_login') }}">관리자 코드로 로그인(구방식)</a>
+</div>
+{% endblock %}

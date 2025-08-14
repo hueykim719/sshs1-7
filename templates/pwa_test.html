@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>PWA 설치 안내</h1>
+<p>모바일에서 이 페이지를 열고 브라우저의 <span class="kbd">공유</span> 또는 <span class="kbd">메뉴</span> &rarr; <span class="kbd">홈 화면에 추가</span> 를 선택하면 앱처럼 설치됩니다.</p>
+{% if vapid_public_key %}<p>푸시 알림을 받으려면 상단의 "푸시 구독" 버튼을 눌러 주세요.</p>{% endif %}
+{% endblock %}
