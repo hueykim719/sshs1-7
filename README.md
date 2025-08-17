@@ -1,4 +1,4 @@
-# 1-7 ClassHub (Modern Aurora UI, Year=2025 Fixed)
+# 107app (Modern Aurora UI, Year=2025 Fixed)
 
 - 모바일 친화 UI, 오로라 그라디언트 배경, 글래스 카드, 필 버튼
 - 과제/수행: 정렬·필터·완료·색상·첨부, **연도 2025 고정(월·일만 입력)**

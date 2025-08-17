@@ -335,7 +335,7 @@ def toggle_pin(note_id):
 # --- ICS 캘린더 피드 (Google Calendar 구독용) ---
 @app.route('/calendar.ics')
 def calendar_ics():
-    lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//1-7 ClassHub//EN']
+    lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//107app//EN']
     for t in Task.query.order_by(Task.due_date.asc()).all():
         dt = t.due_date.strftime('%Y%m%d')
         lines += ['BEGIN:VEVENT',
