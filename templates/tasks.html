@@ -2,77 +2,79 @@
 {% block content %}
 <div class="card">
   <h2>과제/수행</h2>
-  <form class="row wrap g8" method="get">
+  <form class="row" method="get">
     <label class="select">
       <span>정렬</span>
       <select name="sort">
-        <option value="due_asc" {% if sort == 'due_asc' %}selected{% endif %}>마감일↑</option>
-        <option value="due_desc" {% if sort == 'due_desc' %}selected{% endif %}>마감일↓</option>
-        <option value="created_desc" {% if sort == 'created_desc' %}selected{% endif %}>등록 최신</option>
-        <option value="created_asc" {% if sort == 'created_asc' %}selected{% endif %}>등록 오래됨</option>
-        <option value="category" {% if sort == 'category' %}selected{% endif %}>카테고리</option>
+        <option value="due_asc" {% if sort=='due_asc' %}selected{% endif %}>마감일↑</option>
+        <option value="due_desc" {% if sort=='due_desc' %}selected{% endif %}>마감일↓</option>
+        <option value="created_desc" {% if sort=='created_desc' %}selected{% endif %}>등록 최신</option>
+        <option value="created_asc" {% if sort=='created_asc' %}selected{% endif %}>등록 오래됨</option>
+        <option value="category" {% if sort=='category' %}selected{% endif %}>카테고리</option>
       </select>
     </label>
     <label class="select">
       <span>보기</span>
       <select name="when">
-        <option value="" {% if when == '' %}selected{% endif %}>전체</option>
-        <option value="today" {% if when == 'today' %}selected{% endif %}>오늘</option>
-        <option value="tomorrow" {% if when == 'tomorrow' %}selected{% endif %}>내일</option>
-        <option value="upcoming" {% if when == 'upcoming' %}selected{% endif %}>이후</option>
+        <option value="" {% if when=='' %}selected{% endif %}>전체</option>
+        <option value="today" {% if when=='today' %}selected{% endif %}>오늘</option>
+        <option value="tomorrow" {% if when=='tomorrow' %}selected{% endif %}>내일</option>
+        <option value="upcoming" {% if when=='upcoming' %}selected{% endif %}>이후</option>
       </select>
     </label>
-    <button class="btn xl primary">적용</button>
+    <button class="btn primary">적용</button>
   </form>
 </div>
 
-<section class="stack g12">
+<section class="stack">
   {% for t in tasks %}
-    <div class="task {% if t.completed %}done{% endif %}" style="--bar: {{ t.color }};">
-      <button class="check" type="button" data-task-id="{{ t.id }}" aria-label="완료 토글">
-        <span class="box"></span>
-      </button>
-      <div class="task-body">
-        <div class="task-title">{{ t.title }}</div>
-        <div class="meta">카테고리: {{ t.category }} · 마감: {{ t.due_date }} · 등록: {{ (t.created_at or t.due_date).strftime('%Y-%m-%d') }}</div>
-        {% if t.attachment_path %}
-          <div class="meta"><a href="{{ url_for('static', filename=t.attachment_path) }}" target="_blank">첨부파일</a></div>
-        {% endif %}
-      </div>
-      {% if is_admin %}
-        <form method="post" action="{{ url_for('delete_task', task_id=t.id) }}"><button class="btn sm danger">삭제</button></form>
+  <div class="task {% if t.completed %}done{% endif %}" style="--bar: {{ t.color }};">
+    <button class="check" type="button" data-task-id="{{ t.id }}" aria-label="완료 토글"><span class="box"></span></button>
+    <div style="flex:1">
+      <div class="task-title">{{ t.title }}</div>
+      <div class="meta">카테고리: {{ t.category }} · 마감: {{ t.due_date }} · 등록: {{ (t.created_at or t.due_date).strftime('%Y-%m-%d') }}</div>
+      {% if t.attachment_path %}
+        <div class="meta"><a href="{{ url_for('static', filename=t.attachment_path) }}" target="_blank">첨부파일</a></div>
       {% endif %}
     </div>
-  {% else %}
-    <div class="card">내용이 없습니다.</div>
-  {% endfor %}
+    {% if is_admin %}
+      <form method="post" action="{{ url_for('delete_task', task_id=t.id) }}"><button class="btn sm danger">삭제</button></form>
+    {% endif %}
+  </div>
+  {% else %}<div class="card">내용이 없습니다.</div>{% endfor %}
 </section>
 
 {% if is_admin %}
-<div class="fab-card card">
-  <h3>추가 (연도는 자동으로 2025 처리)</h3>
-  <form class="grid2 g12" method="post" action="{{ url_for('add_task') }}" enctype="multipart/form-data">
-    <input class="inp xl" name="title" placeholder="제목" required>
+<div class="card">
+  <h3>추가 (연도 2025 고정 · 월/일만 입력)</h3>
+  <form class="grid2" method="post" action="{{ url_for('add_task') }}" enctype="multipart/form-data">
+    <input class="inp" name="title" placeholder="제목" required>
     <label class="select">
       <span>종류</span>
-      <select name="category" class="inp xl">
+      <select name="category" class="inp">
         <option value="assignment">과제</option>
         <option value="assessment">수행평가</option>
       </select>
     </label>
+
     <label class="select">
-      <span>마감일 (연도는 2025로 저장)</span>
-      <input class="inp xl" type="date" name="due_date" value="{{ default_2025 }}" required>
+      <span>마감일 (2025년 고정)</span>
+      <div class="row">
+        <input class="inp" type="text" value="2025" readonly style="width:90px">년
+        <input class="inp" type="number" name="month" min="1" max="12" value="{{ default_month }}" required style="width:110px">월
+        <input class="inp" type="number" name="day" min="1" max="31" value="{{ default_day }}" required style="width:110px">일
+      </div>
     </label>
+
     <label class="select">
       <span>색상</span>
-      <input class="inp xl" type="color" name="color" value="#60a5fa">
+      <input class="inp" type="color" name="color" value="#8b5cf6">
     </label>
     <label class="select">
       <span>첨부파일</span>
-      <input class="inp xl" type="file" name="attachment" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip">
+      <input class="inp" type="file" name="attachment" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip">
     </label>
-    <button class="btn xl primary">등록</button>
+    <button class="btn primary">등록</button>
   </form>
 </div>
 {% endif %}

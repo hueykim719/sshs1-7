@@ -17,9 +17,9 @@
 {% if is_admin %}
 <div class="card">
   <h3>추가</h3>
-  <form class="row g8" method="post" action="{{ url_for('add_supply') }}">
-    <input class="inp xl" name="item_text" placeholder="예: 체육복, 스케치북" required>
-    <button class="btn xl primary">등록</button>
+  <form class="row" method="post" action="{{ url_for('add_supply') }}">
+    <input class="inp" name="item_text" placeholder="예: 체육복, 스케치북" required>
+    <button class="btn primary">등록</button>
   </form>
 </div>
 {% endif %}

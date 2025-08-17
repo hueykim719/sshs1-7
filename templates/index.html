@@ -2,23 +2,33 @@
 {% block content %}
 <section class="grid3">
   <div class="card">
-    <h2>다가오는 일정</h2>
-    <div class="bignum">{{ upcoming_count }}</div>
+    <h2>오늘 · 내일</h2>
+    <div class="bignum">오늘 {{ today_count }} · 내일 {{ tomorrow_count }}</div>
     <div class="row">
-      <a class="btn xl primary" href="{{ url_for('tasks', when='today') }}">오늘</a>
-      <a class="btn xl" href="{{ url_for('tasks', when='tomorrow') }}">내일</a>
-      <a class="btn xl" href="{{ url_for('tasks', when='upcoming') }}">이후</a>
+      <a class="btn primary" href="{{ url_for('tasks', when='today') }}">오늘 마감</a>
+      <a class="btn" href="{{ url_for('tasks', when='tomorrow') }}">내일 마감</a>
+      <a class="btn" href="{{ url_for('tasks', when='upcoming') }}">이후</a>
     </div>
   </div>
   <div class="card">
-    <h2>준비물</h2>
-    <div class="bignum">{{ supplies_count }}</div>
-    <a class="btn xl" href="{{ url_for('supplies') }}">보기</a>
+    <h2>다가오는 일정</h2>
+    {% if upcoming %}
+    <ul class="list">
+      {% for t in upcoming %}
+        <li class="list-row"><span>{{ t.due_date }} · {{ t.title }}</span><span class="badge">{{ t.category }}</span></li>
+      {% endfor %}
+    </ul>
+    {% else %}<div class="muted">일정이 없습니다.</div>{% endif %}
   </div>
   <div class="card">
-    <h2>메모</h2>
-    <div class="bignum">{{ notes_count }}</div>
-    <a class="btn xl" href="{{ url_for('misc') }}">보기</a>
+    <h2>고정 공지</h2>
+    {% if pinned_notes %}
+      <ul class="list">
+        {% for n in pinned_notes %}
+          <li class="list-row"><span>{{ n.content[:18] }}{% if n.content|length>18 %}…{% endif %}</span><span class="muted">{{ n.kst_str }}</span></li>
+        {% endfor %}
+      </ul>
+    {% else %}<div class="muted">고정 공지가 없습니다.</div>{% endif %}
   </div>
 </section>
 {% endblock %}
