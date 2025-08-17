@@ -7,12 +7,12 @@
   <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script defer src="{{ url_for('static', filename='app.js') }}"></script>
-  <title>1-7 ClassHub</title>
+  <title>1-7 app</title>
 </head>
 <body>
   <div class="app-wrap">
     <header class="topbar">
-      <div class="brand">1-7 ClassHub</div>
+      <div class="brand">1-7 app</div>
       <nav class="nav">
         <a class="btn lg" href="{{ url_for('index') }}">홈</a>
         <a class="btn lg" href="{{ url_for('tasks') }}">과제/수행</a>
@@ -42,11 +42,6 @@
     <main class="container">
       {% block content %}{% endblock %}
     </main>
-
-    <footer class="bottombar">
-      <a href="/calendar.ics" class="link">Google Calendar 구독 (ICS)</a>
-      <div class="muted">© 1-7</div>
-    </footer>
   </div>
 </body>
 </html>

@@ -1,11 +1,4 @@
-# 1-7 ClassHub (간소화)
-
-- 검색 기능 제거
-- 로그인/다중관리자/DB 백업/푸시 알림 제거
-- 기타에 파일 첨부 추가
-- 정렬/완료/색상/PWA/과제첨부/오늘·내일/ICS 유지
-
-## 실행
-pip install -r requirements.txt
-cp .env.example .env
-flask --app app run
+# Class Hub (학사일정 제거 버전)
+- 홈: 수행평가/과제, 내일의 준비물, 시간표, 기타
+- 관리자 코드로 내용 수정
+- 시간표는 업로드하거나 `static/uploads/timetable.png`가 있으면 자동 표시
