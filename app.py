@@ -5,6 +5,7 @@ from datetime import datetime, date, timedelta
 from markupsafe import Markup, escape
 from dotenv import load_dotenv
 import os, re, sqlite3
+from sqlalchemy import func
 
 load_dotenv()
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -108,18 +109,41 @@ with app.app_context():
 @app.route('/')
 def index():
     today = date.today()
-    tomorrow = today + timedelta(days=1)
-    today_count = Task.query.filter(Task.due_date==today).count()
-    tomorrow_count = Task.query.filter(Task.due_date==tomorrow).count()
-    upcoming = Task.query.filter(Task.due_date>=today).order_by(Task.due_date.asc()).limit(5).all()
-    notes = Note.query.filter_by(pinned=True).order_by(Note.created_at.desc()).limit(3).all()
+    today_s = today.isoformat()
+    tomorrow_s = (today + timedelta(days=1)).isoformat()
+
+    # func.date로 'YYYY-MM-DD'만 비교 (기존 DB가 DATETIME/문자열이어도 안전)
+    today_count = Task.query.filter(func.date(Task.due_date) == today_s).count()
+    tomorrow_count = Task.query.filter(func.date(Task.due_date) == tomorrow_s).count()
+
+    # '다가오는 일정'도 동일 기준(오늘 포함 이후)
+    upcoming = (Task.query
+                .filter(func.date(Task.due_date) >= today_s)
+                .order_by(Task.due_date.asc())
+                .limit(5)
+                .all())
+
+    notes = (Note.query
+             .filter_by(pinned=True)
+             .order_by(Note.created_at.desc())
+             .limit(3)
+             .all())
+
     kst = timedelta(hours=9)
     for n in notes:
         n.kst_str = (n.created_at + kst).strftime('%Y-%m-%d %H:%M')
+
     supplies_count = Supply.query.count()
-    return render_template('index.html',
-        today_count=today_count, tomorrow_count=tomorrow_count,
-        upcoming=upcoming, pinned_notes=notes, supplies_count=supplies_count)
+
+    return render_template(
+        'index.html',
+        today_count=today_count,
+        tomorrow_count=tomorrow_count,
+        upcoming=upcoming,
+        pinned_notes=notes,
+        supplies_count=supplies_count
+    )
+
 
 # --- 관리자 코드 로그인(간단 모드) ---
 @app.route('/admin/login', methods=['GET','POST'])
@@ -137,21 +161,43 @@ def admin_logout():
 # --- 과제/수행 (정렬/필터/완료/첨부, 연도 2025 고정: 월/일만 입력) ---
 @app.route('/tasks')
 def tasks():
-    sort = request.args.get('sort','due_asc')
-    when = request.args.get('when','')
+    sort = request.args.get('sort', 'due_asc')
+    when = request.args.get('when', '')
+
     qs = Task.query
     today = date.today()
-    if when=='today': qs = qs.filter(Task.due_date==today)
-    elif when=='tomorrow': qs = qs.filter(Task.due_date==today+timedelta(days=1))
-    elif when=='upcoming': qs = qs.filter(Task.due_date>=today)
-    if sort=='due_desc': qs = qs.order_by(Task.due_date.desc())
-    elif sort=='created_desc': qs = qs.order_by(Task.created_at.desc())
-    elif sort=='created_asc': qs = qs.order_by(Task.created_at.asc())
-    elif sort=='category': qs = qs.order_by(Task.category.asc(), Task.due_date.asc())
-    else: qs = qs.order_by(Task.due_date.asc())
-    return render_template('tasks.html',
-        tasks=qs.all(), sort=sort, when=when,
-        default_month=today.month, default_day=today.day)
+    today_s = today.isoformat()
+    tomorrow_s = (today + timedelta(days=1)).isoformat()
+
+    # 동일한 날짜 기준 (func.date)
+    if when == 'today':
+        qs = qs.filter(func.date(Task.due_date) == today_s)
+    elif when == 'tomorrow':
+        qs = qs.filter(func.date(Task.due_date) == tomorrow_s)
+    elif when == 'upcoming':
+        qs = qs.filter(func.date(Task.due_date) >= today_s)
+
+    # 정렬
+    if sort == 'due_desc':
+        qs = qs.order_by(Task.due_date.desc())
+    elif sort == 'created_desc':
+        qs = qs.order_by(Task.created_at.desc())
+    elif sort == 'created_asc':
+        qs = qs.order_by(Task.created_at.asc())
+    elif sort == 'category':
+        qs = qs.order_by(Task.category.asc(), Task.due_date.asc())
+    else:
+        qs = qs.order_by(Task.due_date.asc())
+
+    return render_template(
+        'tasks.html',
+        tasks=qs.all(),
+        sort=sort,
+        when=when,
+        default_month=today.month,
+        default_day=today.day
+    )
+
 
 @app.route('/tasks/add', methods=['POST'])
 def add_task():
